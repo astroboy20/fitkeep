@@ -12,128 +12,57 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  ChevronRight,
-  MessageSquare,
-  Users,
-  Calendar,
-  BookOpen,
-  Settings,
-  LogOut,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Sidebar } from "@/components/sidebar";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { PatientRegistration } from "@/components/patient-reg";
+import { Appointment } from "../lib/typing";
+import { appointments } from "@/lib/data";
 
-type Appointment = {
-  id: string;
-  patient: { name: string; avatar: string };
-  date: string;
-  type: string;
-  clinic: string;
-  ref: string;
-  status: "Ongoing" | "Due" | "Postponed" | "Completed";
-};
+const DoctorsDashboard = () => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemPerPage = 7;
 
-const appointments: Appointment[] = [
-  {
-    id: "1",
-    patient: {
-      name: "Janet Hoffman",
-      avatar: "/placeholder.svg?height=32&width=32",
-    },
-    date: "Feb 15, 8:30am",
-    type: "Telemedicine",
-    clinic: "Paragon Shopping city medical",
-    ref: "92831ABF23",
-    status: "Ongoing",
-  },
-  {
-    id: "2",
-    patient: {
-      name: "Marsha Bailey",
-      avatar: "/placeholder.svg?height=32&width=32",
-    },
-    date: "Feb 15, 8:30am",
-    type: "In-House",
-    clinic: "Paragon Shopping city medical",
-    ref: "92831ABF23",
-    status: "Due",
-  },
-  {
-    id: "3",
-    patient: {
-      name: "Eva Zimmerman",
-      avatar: "/placeholder.svg?height=32&width=32",
-    },
-    date: "Feb 15, 8:30am",
-    type: "Chamber",
-    clinic: "Paragon Shopping city medical",
-    ref: "92831ABF23",
-    status: "Postponed",
-  },
-  {
-    id: "4",
-    patient: {
-      name: "Seth Swanson",
-      avatar: "/placeholder.svg?height=32&width=32",
-    },
-    date: "Feb 15, 8:30am",
-    type: "Medical",
-    clinic: "Paragon Shopping city medical",
-    ref: "92831ABF23",
-    status: "Completed",
-  },
-  {
-    id: "5",
-    patient: {
-      name: "Betty Schroeder",
-      avatar: "/placeholder.svg?height=32&width=32",
-    },
-    date: "Feb 15, 8:30am",
-    type: "Emergency",
-    clinic: "Paragon Shopping city medical",
-    ref: "92831ABF23",
-    status: "Ongoing",
-  },
-  {
-    id: "6",
-    patient: {
-      name: "Bobbie Snyder",
-      avatar: "/placeholder.svg?height=32&width=32",
-    },
-    date: "Feb 15, 8:30am",
-    type: "Emergency",
-    clinic: "Paragon Shopping city medical",
-    ref: "92831ABF23",
-    status: "Completed",
-  },
-  {
-    id: "7",
-    patient: {
-      name: "Thelma Andrews",
-      avatar: "/placeholder.svg?height=32&width=32",
-    },
-    date: "Feb 15, 8:30am",
-    type: "Emergency",
-    clinic: "Paragon Shopping city medical",
-    ref: "92831ABF23",
-    status: "Postponed",
-  },
-];
+  const totalPages = Math.ceil(appointments.length / itemPerPage);
 
-const DoctorsDashboard=() =>{
-  const [currentTab, setCurrentTab] = useState("Current");
+  const currentAppointments = appointments.slice(
+    (currentPage - 1) * itemPerPage,
+    currentPage * itemPerPage
+  );
 
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
+  
   return (
     <div className="flex flex-col md:flex-row h-screen bg-gray-100">
       {/* Sidebar */}
-    <Sidebar/>
+      <Sidebar />
 
       {/* Main content */}
       <main className="flex-1 p-4 md:p-8 overflow-auto">
         <div className="flex flex-col md:flex-row justify-between items-center mb-8">
-          <h1 className="text-2xl font-bold mb-4 md:mb-0">My Appointments</h1>
+          <h1 className="text-2xl font-bold mb-4 md:mb-0">My Patients</h1>
           <div className="flex items-center space-x-4">
-            <Input type="search" placeholder="Search patients" className="w-full md:w-64" />
+            <Input
+              type="search"
+              placeholder="Search patients"
+              className="w-full md:w-64"
+            />
             <Avatar>
               <AvatarImage
                 src="/placeholder.svg?height=32&width=32"
@@ -142,22 +71,6 @@ const DoctorsDashboard=() =>{
               <AvatarFallback>DL</AvatarFallback>
             </Avatar>
           </div>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex flex-wrap gap-2 mb-6">
-          {["Current", "Upcoming", "Past", "Cancelled"].map(
-            (tab) => (
-              <Button
-                key={tab}
-                variant={currentTab === tab ? "default" : "outline"}
-                onClick={() => setCurrentTab(tab)}
-                className="flex-1 md:flex-none"
-              >
-                {tab}
-              </Button>
-            )
-          )}
         </div>
 
         {/* Doctor info */}
@@ -198,30 +111,41 @@ const DoctorsDashboard=() =>{
         {/* Appointments table */}
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="p-4 flex flex-col md:flex-row justify-between items-start md:items-center">
-            <h2 className="text-xl font-semibold mb-2 md:mb-0">Today's Appointments</h2>
+            <h2 className="text-xl font-semibold mb-2 md:mb-0">
+              Patients List
+            </h2>
             <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-500">Sort by:</span>
-              <select className="border rounded p-1">
-                <option>Time</option>
-                <option>Patient Name</option>
-                <option>Type</option>
-              </select>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button>Add Patient</Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Add Patient</DialogTitle>
+                    {/* <DialogDescription>
+                      Make changes to your profile here. Click save when you're
+                      done.
+                    </DialogDescription> */}
+                  </DialogHeader>
+                  <PatientRegistration />
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
-          <div className="overflow-x-auto">
-            <Table>
+          <div className="overflow-x-auto w-full p-4">
+            <Table className="w-full">
               <TableHeader>
                 <TableRow>
-                  <TableHead>PATIENT</TableHead>
-                  <TableHead>DATE</TableHead>
-                  <TableHead>TYPE</TableHead>
-                  <TableHead>CLINIC</TableHead>
-                  <TableHead>REF.</TableHead>
-                  <TableHead>STATUS</TableHead>
+                  <TableHead>Fullname</TableHead>
+                  <TableHead>Age</TableHead>
+                  <TableHead>Gender</TableHead>
+                  <TableHead>Contact</TableHead>
+                  <TableHead>Ref.</TableHead>
+                  <TableHead>Device Id</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {appointments.map((appointment) => (
+                {currentAppointments.map((appointment) => (
                   <TableRow key={appointment.id}>
                     <TableCell className="flex items-center space-x-2">
                       <Avatar>
@@ -238,10 +162,14 @@ const DoctorsDashboard=() =>{
                       </Avatar>
                       <span>{appointment.patient.name}</span>
                     </TableCell>
-                    <TableCell>{appointment.date}</TableCell>
-                    <TableCell>{appointment.type}</TableCell>
-                    <TableCell className="hidden md:table-cell">{appointment.clinic}</TableCell>
-                    <TableCell className="hidden md:table-cell">{appointment.ref}</TableCell>
+                    <TableCell>{appointment.patient.age}</TableCell>
+                    <TableCell>{appointment.patient.gender}</TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {appointment.patient.contact}
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {appointment.ref}
+                    </TableCell>
                     <TableCell>
                       <span
                         className={`px-2 py-1 rounded-full text-xs font-semibold
@@ -265,25 +193,29 @@ const DoctorsDashboard=() =>{
           </div>
           <div className="p-4 flex flex-col md:flex-row justify-between items-center">
             <p className="text-sm text-gray-500 mb-2 md:mb-0">
-              Showing 7 items out of 150 results found
+              Showing {currentAppointments.length} items out of{" "}
+              {appointments.length} results found
             </p>
             <div className="flex space-x-2">
-              {[1, 2, 3, 4, 5].map((page) => (
-                <Button
-                  key={page}
-                  variant={page === 3 ? "default" : "outline"}
-                  size="sm"
-                >
-                  {page}
-                </Button>
-              ))}
-              <Button variant="outline" size="sm">
-                ...
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePrevPage}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
               </Button>
-              <Button variant="outline" size="sm">
-                60
-              </Button>
-              <Button variant="outline" size="sm">
+
+              <span>
+                Page {currentPage} of {totalPages}
+              </span>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+              >
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
@@ -292,6 +224,6 @@ const DoctorsDashboard=() =>{
       </main>
     </div>
   );
-}
+};
 
-export {DoctorsDashboard}
+export { DoctorsDashboard };
