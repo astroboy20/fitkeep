@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,23 +18,43 @@ import { Sidebar } from "@/components/sidebar";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { PatientRegistration } from "@/components/patient-reg";
-import { Appointment } from "../lib/typing";
-import { appointments } from "@/lib/data";
 
 const DoctorsDashboard = () => {
+  const router = useRouter(); 
   const [currentPage, setCurrentPage] = useState(1);
   const itemPerPage = 7;
+  const [patients, setPatients] = useState([]); 
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null); 
 
-  const totalPages = Math.ceil(appointments.length / itemPerPage);
+  useEffect(() => {
+    const fetchPatients = async () => {
+      setLoading(true); 
+      try {
+        const response = await fetch("http://localhost:8080/patients");
+        if (!response.ok) {
+          throw new Error("Failed to fetch patients");
+        }
+        const data = await response.json();
+        setPatients(data.data || []); 
+      } catch (error) {
+        console.error(error);
+        setError(error.message); 
+      } finally {
+        setLoading(false); 
+      }
+    };
 
-  const currentAppointments = appointments.slice(
+    fetchPatients();
+  }, []); 
+
+  const totalPages = Math.ceil(patients.length / itemPerPage);
+  const currentPatients = patients.slice(
     (currentPage - 1) * itemPerPage,
     currentPage * itemPerPage
   );
@@ -47,7 +68,7 @@ const DoctorsDashboard = () => {
   const handlePrevPage = () => {
     if (currentPage > 1) setCurrentPage(currentPage - 1);
   };
-  
+
   return (
     <div className="flex flex-col md:flex-row h-screen bg-gray-100">
       {/* Sidebar */}
@@ -73,47 +94,10 @@ const DoctorsDashboard = () => {
           </div>
         </div>
 
-        {/* Doctor info */}
-        <div className="bg-white p-4 md:p-6 rounded-lg shadow mb-6">
-          <div className="flex flex-col md:flex-row md:items-center md:space-x-6">
-            <Avatar className="h-16 w-16 mb-4 md:mb-0">
-              <AvatarImage
-                src="/placeholder.svg?height=64&width=64"
-                alt="Dr. Lee"
-              />
-              <AvatarFallback>DL</AvatarFallback>
-            </Avatar>
-            <div>
-              <h2 className="text-xl font-semibold">Dr. Lee</h2>
-              <p className="text-gray-500">General Practice</p>
-              <p className="text-sm text-gray-400">
-                M.B.B.S, D.O, M.M.E.D, M.Sc, D.MSc
-              </p>
-            </div>
-          </div>
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <h3 className="text-sm font-medium text-gray-500">
-                CURRENT WORKPLACE
-              </h3>
-              <p>Administrator</p>
-              <p>Rails Clinic</p>
-              <p>Family Clinic & Surgery</p>
-            </div>
-            <div>
-              <h3 className="text-sm font-medium text-gray-500">ADDRESS</h3>
-              <p>Paragon Shopping city m...</p>
-              <p>Singapore</p>
-            </div>
-          </div>
-        </div>
-
         {/* Appointments table */}
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="p-4 flex flex-col md:flex-row justify-between items-start md:items-center">
-            <h2 className="text-xl font-semibold mb-2 md:mb-0">
-              Patients List
-            </h2>
+            <h2 className="text-xl font-semibold mb-2 md:mb-0">Patients List</h2>
             <div className="flex items-center space-x-2">
               <Dialog>
                 <DialogTrigger asChild>
@@ -122,79 +106,63 @@ const DoctorsDashboard = () => {
                 <DialogContent className="sm:max-w-[425px]">
                   <DialogHeader>
                     <DialogTitle>Add Patient</DialogTitle>
-                    {/* <DialogDescription>
-                      Make changes to your profile here. Click save when you're
-                      done.
-                    </DialogDescription> */}
+                    <PatientRegistration />
                   </DialogHeader>
-                  <PatientRegistration />
                 </DialogContent>
               </Dialog>
             </div>
           </div>
           <div className="overflow-x-auto w-full p-4">
-            <Table className="w-full">
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Fullname</TableHead>
-                  <TableHead>Age</TableHead>
-                  <TableHead>Gender</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Ref.</TableHead>
-                  <TableHead>Device Id</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {currentAppointments.map((appointment) => (
-                  <TableRow key={appointment.id}>
-                    <TableCell className="flex items-center space-x-2">
-                      <Avatar>
-                        <AvatarImage
-                          src={appointment.patient.avatar}
-                          alt={appointment.patient.name}
-                        />
-                        <AvatarFallback>
-                          {appointment.patient.name
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span>{appointment.patient.name}</span>
-                    </TableCell>
-                    <TableCell>{appointment.patient.age}</TableCell>
-                    <TableCell>{appointment.patient.gender}</TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      {appointment.patient.contact}
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      {appointment.ref}
-                    </TableCell>
-                    <TableCell>
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-semibold
-                        ${
-                          appointment.status === "Ongoing"
-                            ? "bg-blue-100 text-blue-800"
-                            : appointment.status === "Due"
-                            ? "bg-red-100 text-red-800"
-                            : appointment.status === "Postponed"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-green-100 text-green-800"
-                        }`}
-                      >
-                        {appointment.status}
-                      </span>
-                    </TableCell>
+            {loading ? (
+              <div>Loading...</div> // Loading state
+            ) : error ? (
+              <div className="text-red-500">{error}</div> // Error state
+            ) : (
+              <Table className="w-full">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Fullname</TableHead>
+                    <TableHead>Age</TableHead>
+                    <TableHead>Gender</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead>Device Id</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {currentPatients.map((patient) => (
+                    <TableRow
+                      key={patient.id}
+                      onClick={() => router.push(`/patient/${patient.id}`)} // Navigate to patient's detail page
+                      className="cursor-pointer hover:bg-gray-100" // Add hover effect
+                    >
+                      <TableCell className="flex items-center space-x-2">
+                        <Avatar>
+                          <AvatarImage
+                            src={patient.avatar || "/placeholder.svg"} // Default avatar if unavailable
+                            alt={patient.full_name}
+                          />
+                          <AvatarFallback>
+                            {patient.full_name
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span>{patient.full_name}</span>
+                      </TableCell>
+                      <TableCell>{patient.age}</TableCell>
+                      <TableCell>{patient.gender}</TableCell>
+                      <TableCell>{patient.contact_info}</TableCell>
+                      <TableCell>{patient.assigned_device_id || "N/A"}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </div>
           <div className="p-4 flex flex-col md:flex-row justify-between items-center">
             <p className="text-sm text-gray-500 mb-2 md:mb-0">
-              Showing {currentAppointments.length} items out of{" "}
-              {appointments.length} results found
+              Showing {currentPatients.length} items out of {patients.length} results found
             </p>
             <div className="flex space-x-2">
               <Button
