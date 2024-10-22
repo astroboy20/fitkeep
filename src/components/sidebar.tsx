@@ -17,12 +17,12 @@ const Sidebar = () => {
       <nav className="flex md:flex-col space-x-2 md:space-x-0 md:space-y-4">
         <Link href={"/"} className="flex md:w-full justify-start">
           <Calendar className="h-5 w-5 mr-2" />
-          <span className="hidden md:inline">Doctor</span>
+          <span className="hidden md:inline">Patients</span>
         </Link>
-        <Link href={"/patient"} className="flex md:w-full justify-start">
+        {/* <Link href={"/patient"} className="flex md:w-full justify-start">
           <Users className="h-5 w-5 mr-2" />
           <span className="hidden md:inline">Patient</span>
-        </Link>
+        </Link> */}
         <Link href={"/devices"} className="flex md:w-full justify-start">
           <Users className="h-5 w-5 mr-2" />
           <span className="hidden md:inline">Weareable devices</span>
