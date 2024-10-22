@@ -23,6 +23,10 @@ const Sidebar = () => {
           <Users className="h-5 w-5 mr-2" />
           <span className="hidden md:inline">Patient</span>
         </Link>
+        <Link href={"/devices"} className="flex md:w-full justify-start">
+          <Users className="h-5 w-5 mr-2" />
+          <span className="hidden md:inline">Weareable devices</span>
+        </Link>
       </nav>
       {/* <Button
         variant="ghost"
