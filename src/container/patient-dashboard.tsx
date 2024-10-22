@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LayoutDashboard, Clock, BarChart2, Settings, User, HelpCircle, LogOut } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Sidebar } from "@/components/sidebar";
+import { useParams } from "next/navigation";
 
 type Appointment = {
   id: string;
@@ -32,7 +33,39 @@ const organHealth = [
 
 const PatientDashboard =()=> {
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const [patient, setPatient] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const { id } = useParams();
 
+  useEffect(() => {
+    if (id) {
+      const fetchPatientData = async (id: string) => {
+        try {
+          const response = await fetch(`http://localhost:8080/patient/${id}`);
+          if (!response.ok) {
+            throw new Error("Failed to fetch patient data");
+          }
+          const data = await response.json();
+          setPatient(data); 
+        } catch (error) {
+          console.error(error);
+          setPatient(null); 
+        } finally {
+          setLoading(false); 
+        }
+      };
+
+      fetchPatientData(id as string); 
+    }
+  }, [id]);
+
+  if (loading) {
+    return <div>Loading...</div>; // Show loading state
+  }
+
+  if (!patient) {
+    return <div>Patient not found.</div>; // Handle case when patient is not found
+  }
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
@@ -62,11 +95,11 @@ const PatientDashboard =()=> {
             </Button>
             <Avatar>
               <AvatarImage src="/placeholder.svg?height=32&width=32" alt="Mike Johnson" />
-              <AvatarFallback>MJ</AvatarFallback>
+              <AvatarFallback>AV</AvatarFallback>
             </Avatar>
             <div>
-              <p className="font-medium">Mike Johnson</p>
-              <p className="text-sm text-gray-500">mike@example.com</p>
+              <p className="font-medium">{patient.full_name}</p>
+              <p className="text-sm text-gray-500">{patient.contact_info}</p>
             </div>
           </div>
         </div>
