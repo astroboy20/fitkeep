@@ -23,12 +23,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { DeviceRegistration } from "@/components/device-reg";
+import { Device_Type } from "@/lib/typing";
 
 const DevicesDashboard = () => {
   const router = useRouter(); 
   const [currentPage, setCurrentPage] = useState(1);
   const itemPerPage = 7;
-  const [devices, setDevices] = useState([]); 
+  const [devices, setDevices] = useState<Device_Type[]>([]); 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null); 
 
@@ -42,7 +43,7 @@ const DevicesDashboard = () => {
         }
         const data = await response.json();
         setDevices(data.data || []); 
-      } catch (error) {
+      } catch (error: any) {
         console.error(error);
         setError(error.message); 
       } finally {
@@ -144,7 +145,7 @@ const DevicesDashboard = () => {
                           <AvatarFallback>
                             {device.device_name
                               .split(" ")
-                              .map((n) => n[0])
+                              .map((n:string) => n[0])
                               .join("")}
                           </AvatarFallback>
                         </Avatar>

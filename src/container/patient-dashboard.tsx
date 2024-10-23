@@ -5,23 +5,51 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LayoutDashboard, Clock, BarChart2, Settings, User, HelpCircle, LogOut } from "lucide-react";
+import {
+  LayoutDashboard,
+  Clock,
+  BarChart2,
+  Settings,
+  User,
+  HelpCircle,
+  LogOut,
+} from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Sidebar } from "@/components/sidebar";
 import { useParams } from "next/navigation";
 
 type Appointment = {
-  id: string;
+  id?: string;
   doctor: string;
-  specialty: string;
-  time: string;
-  location: string;
+  specialty?: string;
+  time?: string;
+  location?: string;
+  full_name?: string;
+  contact_info?: string | any;
 };
 
 const appointments: Appointment[] = [
-  { id: "1", doctor: "Dr. Dianne Fisher", specialty: "Dentist", time: "8:00 - 8:30 AM", location: "CityMed Clinic" },
-  { id: "2", doctor: "Dr. Paul Collins", specialty: "Neurologist", time: "9:00 - 9:30 AM", location: "Huston Hospital" },
-  { id: "3", doctor: "Dr. Betty Woods", specialty: "Digital X-Ray", time: "18:00 - 18:30 PM", location: "CityMed Clinic" },
+  {
+    id: "1",
+    doctor: "Dr. Dianne Fisher",
+    specialty: "Dentist",
+    time: "8:00 - 8:30 AM",
+    location: "CityMed Clinic",
+  },
+  {
+    id: "2",
+    doctor: "Dr. Paul Collins",
+    specialty: "Neurologist",
+    time: "9:00 - 9:30 AM",
+    location: "Huston Hospital",
+  },
+  {
+    id: "3",
+    doctor: "Dr. Betty Woods",
+    specialty: "Digital X-Ray",
+    time: "18:00 - 18:30 PM",
+    location: "CityMed Clinic",
+  },
 ];
 
 const organHealth = [
@@ -31,9 +59,9 @@ const organHealth = [
   { name: "Liver", percentage: 45 },
 ];
 
-const PatientDashboard =()=> {
+const PatientDashboard = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
-  const [patient, setPatient] = useState(null);
+  const [patient, setPatient] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const { id } = useParams();
 
@@ -46,16 +74,16 @@ const PatientDashboard =()=> {
             throw new Error("Failed to fetch patient data");
           }
           const data = await response.json();
-          setPatient(data); 
+          setPatient(data);
         } catch (error) {
           console.error(error);
-          setPatient(null); 
+          setPatient(null);
         } finally {
-          setLoading(false); 
+          setLoading(false);
         }
       };
 
-      fetchPatientData(id as string); 
+      fetchPatientData(id as string);
     }
   }, [id]);
 
@@ -69,7 +97,7 @@ const PatientDashboard =()=> {
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
-      <Sidebar/>
+      <Sidebar />
 
       {/* Main content */}
       <main className="flex-1 p-8 overflow-auto">
@@ -94,7 +122,10 @@ const PatientDashboard =()=> {
               </svg>
             </Button>
             <Avatar>
-              <AvatarImage src="/placeholder.svg?height=32&width=32" alt="Mike Johnson" />
+              <AvatarImage
+                src="/placeholder.svg?height=32&width=32"
+                alt="Mike Johnson"
+              />
               <AvatarFallback>AV</AvatarFallback>
             </Avatar>
             <div>
@@ -123,7 +154,10 @@ const PatientDashboard =()=> {
                 </div>
                 <div className="w-1/2 space-y-2">
                   {organHealth.map((organ) => (
-                    <div key={organ.name} className="flex items-center justify-between">
+                    <div
+                      key={organ.name}
+                      className="flex items-center justify-between"
+                    >
                       <span>{organ.name}</span>
                       <div className="w-24 bg-gray-200 rounded-full h-2.5">
                         <div
@@ -162,19 +196,31 @@ const PatientDashboard =()=> {
             <CardContent>
               <div className="space-y-4">
                 {appointments.map((appointment) => (
-                  <div key={appointment.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div
+                    key={appointment.id}
+                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                  >
                     <div className="flex items-center space-x-4">
                       <Avatar>
-                        <AvatarFallback>{appointment.doctor.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                        <AvatarFallback>
+                          {appointment.doctor
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")}
+                        </AvatarFallback>
                       </Avatar>
                       <div>
                         <p className="font-medium">{appointment.doctor}</p>
-                        <p className="text-sm text-gray-500">{appointment.specialty}</p>
+                        <p className="text-sm text-gray-500">
+                          {appointment.specialty}
+                        </p>
                       </div>
                     </div>
                     <div className="text-right">
                       <p>{appointment.time}</p>
-                      <p className="text-sm text-gray-500">{appointment.location}</p>
+                      <p className="text-sm text-gray-500">
+                        {appointment.location}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -230,6 +276,6 @@ const PatientDashboard =()=> {
       </main>
     </div>
   );
-}
+};
 
-export {PatientDashboard}
+export { PatientDashboard };

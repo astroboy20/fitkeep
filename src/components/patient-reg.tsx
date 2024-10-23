@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Input } from "./ui/input";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css"; // Import toast styles
+import { Button } from "./ui/button";
 
 const PatientRegistration = () => {
 
@@ -95,9 +96,9 @@ const PatientRegistration = () => {
             className=""
           />
         </div>
-        <button type="submit" className="mt-4 btn-primary">
+        <Button type="submit" className="mt-4 btn-primary">
           Register Patient
-        </button>
+        </Button>
       </form>
     </>
   );

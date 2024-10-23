@@ -1,6 +1,6 @@
-import { Appointment } from "./typing";
+// import { Appointment } from "./typing";
 
-export const appointments: Appointment[] = [
+export const appointments = [
   {
     id: "1",
     patient: {

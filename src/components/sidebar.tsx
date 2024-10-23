@@ -1,57 +1,42 @@
 import React from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Users, Calendar } from "lucide-react";
+import Link from "next/link";
 
 const Sidebar = () => {
-  const router = useRouter();
   const pathname = usePathname();
 
-  const isActive = (path:any) => (pathname === path ? "bg-white text-blue-600" : "");
-
-  const navigate = (path:any) => {
-    router.push(path);
-  };
+  const isActive = (path: string) =>
+    pathname === path ? "bg-white text-blue-600" : "";
 
   return (
-    <aside className="w-full md:w-64 bg-blue-600 text-white p-4 rounded-tr-lg rounded-br-lg">
-
+    <aside className="w-full md:w-64 bg-blue-600 text-white p-4 rounded-br-lg rounded-bl-lg lg:rounded-tr-lg lg:rounded-br-lg">
       <div className="text-2xl font-bold mb-8 hidden md:block">FITKEEP</div>
-      <nav className="flex md:flex-col space-x-2 md:space-x-0 md:space-y-10">
-        <div
-          className={`flex md:w-full justify-start p-2 rounded cursor-pointer`}
-          onClick={() => navigate("")}
-        >
+      <nav className="flex justify-between md:flex-col space-x-2 md:space-x-0 md:space-y-10">
+        <Link href="/" className={`flex md:w-full justify-start p-2 rounded cursor-pointer ${isActive("/")}`}>
           <Users className="h-5 w-5 mr-2" />
           <span className="hidden md:inline">Dashboard</span>
-        </div>
-        <div
-          className={`flex md:w-full justify-start p-2 rounded cursor-pointer ${isActive("/schedule")}`}
-          onClick={() => navigate("/schedule")}
-        >
+        </Link>
+
+        <Link href="/schedule" className={`flex md:w-full justify-start p-2 rounded cursor-pointer ${isActive("/schedule")}`}>
           <Calendar className="h-5 w-5 mr-2" />
           <span className="hidden md:inline">Schedule</span>
-        </div>
-        <div
-          className={`flex md:w-full justify-start p-2 rounded cursor-pointer ${isActive("/")}`}
-          onClick={() => navigate("/")}
-        >
+        </Link>
+
+        <Link href="/patients" className={`flex md:w-full justify-start p-2 rounded cursor-pointer ${isActive("/patients")}`}>
           <Users className="h-5 w-5 mr-2" />
           <span className="hidden md:inline">Patients</span>
-        </div>
-        <div
-          className={`flex md:w-full justify-start p-2 rounded cursor-pointer ${isActive("/devices")}`}
-          onClick={() => navigate("/devices")}
-        >
+        </Link>
+
+        <Link href="/devices" className={`flex md:w-full justify-start p-2 rounded cursor-pointer ${isActive("/devices")}`}>
           <Users className="h-5 w-5 mr-2" />
           <span className="hidden md:inline">Wearable Devices</span>
-        </div>
-        <div
-          className={`flex md:w-full justify-start p-2 rounded cursor-pointer ${isActive("/messages")}`}
-          onClick={() => navigate("/messages")}
-        >
+        </Link>
+
+        <Link href="/messages" className={`flex md:w-full justify-start p-2 rounded cursor-pointer ${isActive("/messages")}`}>
           <Users className="h-5 w-5 mr-2" />
           <span className="hidden md:inline">Messages</span>
-        </div>
+        </Link>
       </nav>
     </aside>
   );

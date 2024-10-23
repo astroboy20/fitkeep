@@ -23,35 +23,36 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { PatientRegistration } from "@/components/patient-reg";
+import { Doctor_Type } from "@/lib/typing";
 
 const DoctorsDashboard = () => {
-  const router = useRouter(); 
+  const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
   const itemPerPage = 7;
-  const [patients, setPatients] = useState([]); 
+  const [patients, setPatients] = useState<Doctor_Type[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null); 
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchPatients = async () => {
-      setLoading(true); 
+      setLoading(true);
       try {
         const response = await fetch("http://localhost:8080/patients");
         if (!response.ok) {
           throw new Error("Failed to fetch patients");
         }
         const data = await response.json();
-        setPatients(data.data || []); 
-      } catch (error) {
+        setPatients(data.data || []);
+      } catch (error:any) {
         console.error(error);
-        setError(error.message); 
+        setError(error.message);
       } finally {
-        setLoading(false); 
+        setLoading(false);
       }
     };
 
     fetchPatients();
-  }, []); 
+  }, []);
 
   const totalPages = Math.ceil(patients.length / itemPerPage);
   const currentPatients = patients.slice(
@@ -97,7 +98,9 @@ const DoctorsDashboard = () => {
         {/* Appointments table */}
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="p-4 flex flex-col md:flex-row justify-between items-start md:items-center">
-            <h2 className="text-xl font-semibold mb-2 md:mb-0">Patients List</h2>
+            <h2 className="text-xl font-semibold mb-2 md:mb-0">
+              Patients List
+            </h2>
             <div className="flex items-center space-x-2">
               <Dialog>
                 <DialogTrigger asChild>
@@ -144,7 +147,7 @@ const DoctorsDashboard = () => {
                           <AvatarFallback>
                             {patient.full_name
                               .split(" ")
-                              .map((n) => n[0])
+                              .map((n:string) => n[0])
                               .join("")}
                           </AvatarFallback>
                         </Avatar>
@@ -153,7 +156,9 @@ const DoctorsDashboard = () => {
                       <TableCell>{patient.age}</TableCell>
                       <TableCell>{patient.gender}</TableCell>
                       <TableCell>{patient.contact_info}</TableCell>
-                      <TableCell>{patient.assigned_device_id || "N/A"}</TableCell>
+                      <TableCell>
+                        {patient.assigned_device_id || "N/A"}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -162,7 +167,8 @@ const DoctorsDashboard = () => {
           </div>
           <div className="p-4 flex flex-col md:flex-row justify-between items-center">
             <p className="text-sm text-gray-500 mb-2 md:mb-0">
-              Showing {currentPatients.length} items out of {patients.length} results found
+              Showing {currentPatients.length} items out of {patients.length}{" "}
+              results found
             </p>
             <div className="flex space-x-2">
               <Button
