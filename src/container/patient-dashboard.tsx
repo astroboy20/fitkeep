@@ -17,6 +17,9 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { Sidebar } from "@/components/sidebar";
 import { useParams } from "next/navigation";
+import { FaHeartbeat, FaTemperatureHigh } from "react-icons/fa";
+import { MdBloodtype } from "react-icons/md";
+import { GiWaterDrop } from "react-icons/gi";
 
 type Appointment = {
   id?: string;
@@ -64,6 +67,56 @@ const PatientDashboard = () => {
   const [patient, setPatient] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const { id } = useParams();
+  const [patientId, setPatientId] = useState("N/A");
+  const [deviceId, setDeviceId] = useState("N/A");
+  const [heartRate, setHeartRate] = useState("N/A");
+  const [oxygenLevel, setOxygenLevel] = useState("N/A");
+  const [temperature, setTemperature] = useState("N/A");
+  const [bloodPressure, setBloodPressure] = useState("N/A");
+  const [glucoseLevel, setGlucoseLevel] = useState("N/A");
+
+  useEffect(() => {
+    const wsUrl = `ws://localhost:8080/ws/${id}`;
+    const socket = new WebSocket(wsUrl);
+
+    socket.onopen = () => {
+      console.log("Connected to WebSocket server");
+      socket.send("Hello from the client!"); 
+    };
+
+    socket.onmessage = (event) => {
+      console.log("Message received:", event.data);
+      try {
+        const data = JSON.parse(event.data);
+        updatePatientInfo(data);
+      } catch (error) {
+        console.error("Failed to parse message:", error);
+      }
+    };
+
+    socket.onerror = (event) => {
+      console.error("WebSocket error:", event);
+    };
+
+    socket.onclose = () => {
+      console.log("WebSocket connection closed");
+    };
+
+    // Cleanup on unmount
+    return () => {
+      socket.close();
+    };
+  }, [id]);
+
+  const updatePatientInfo = (data: any) => {
+    setPatientId(data.patient_id || "N/A");
+    setDeviceId(data.device_id || "N/A");
+    setHeartRate(data.heart_rate || "N/A");
+    setOxygenLevel(data.oxygen_level || "N/A");
+    setTemperature(data.temperature || "N/A");
+    setBloodPressure(data.blood_pressure || "N/A");
+    setGlucoseLevel(data.glucose_level || "N/A");
+  };
 
   useEffect(() => {
     if (id) {
@@ -92,8 +145,76 @@ const PatientDashboard = () => {
   }
 
   if (!patient) {
-    return <div>Patient not found.</div>; // Handle case when patient is not found
+    return <div>Patient not found.</div>; 
   }
+  const normalRanges = {
+    heartRate: { min: 60, max: 100 },
+    temperature: { min: 36.1, max: 37.2 }, 
+    bloodPressure: {
+      systolic: { min: 90, max: 120 },
+      diastolic: { min: 60, max: 80 },
+    },
+    glucoseLevel: { min: 70, max: 140 }, 
+    oxygenLevel: { min: 90, max: 100 }, 
+  };
+  
+
+  const isNormalHeartRate = (rate: string) => {
+    const parsedRate = parseInt(rate, 10);
+    return (
+      !isNaN(parsedRate) &&
+      parsedRate >= normalRanges.heartRate.min &&
+      parsedRate <= normalRanges.heartRate.max
+    );
+  };
+
+  const isNormalTemperature = (temp: string) => {
+    const parsedTemp = parseFloat(temp);
+    return (
+      !isNaN(parsedTemp) &&
+      parsedTemp >= normalRanges.temperature.min &&
+      parsedTemp <= normalRanges.temperature.max
+    );
+  };
+
+  const isNormalBloodPressure = (bp: string) => {
+    const [systolic, diastolic] = bp.split("/").map(Number);
+    return (
+      systolic >= normalRanges.bloodPressure.systolic.min &&
+      systolic <= normalRanges.bloodPressure.systolic.max &&
+      diastolic >= normalRanges.bloodPressure.diastolic.min &&
+      diastolic <= normalRanges.bloodPressure.diastolic.max
+    );
+  };
+
+  const isNormalOxygenLevel = (oxygen: string) => {
+    const parsedOxygen = parseFloat(oxygen); 
+    return (
+      !isNaN(parsedOxygen) &&
+      parsedOxygen >= normalRanges.oxygenLevel.min &&
+      parsedOxygen <= normalRanges.oxygenLevel.max
+    );
+  };
+  
+
+  const blinkingClass = (
+    value: string,
+    type: "heartRate" | "temperature" | "bloodPressure" | "glucoseLevel" | "oxygenLevel"
+  ) => {
+    switch (type) {
+      case "heartRate":
+        return !isNormalHeartRate(value) ? "animate-blink" : "";
+      case "temperature":
+        return !isNormalTemperature(value) ? "animate-blink" : "";
+      case "bloodPressure":
+        return !isNormalBloodPressure(value) ? "animate-blink" : "";
+      case "glucoseLevel":
+        return !isNormalOxygenLevel(value) ? "animate-blink" : "";
+      default:
+        return "";
+    }
+  };
+
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
@@ -142,32 +263,93 @@ const PatientDashboard = () => {
               <CardTitle>Health diagnosis</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex space-x-4">
-                <div className="w-1/2">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    className="w-full h-auto text-blue-400"
-                  >
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm0 6c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" />
-                  </svg>
-                </div>
-                <div className="w-1/2 space-y-2">
-                  {organHealth.map((organ) => (
-                    <div
-                      key={organ.name}
-                      className="flex items-center justify-between"
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white shadow-lg rounded-lg p-4 hover:bg-blue-700 hover:text-white transition duration-300">
+                  <div className="flex gap-4 items-center">
+                    <FaHeartbeat className="text-red-500" />
+                    <p
+                      className={`font-bold text-red-500 ${blinkingClass(
+                        heartRate,
+                        "heartRate"
+                      )}`}
                     >
-                      <span>{organ.name}</span>
-                      <div className="w-24 bg-gray-200 rounded-full h-2.5">
-                        <div
-                          className="bg-blue-400 h-2.5 rounded-full"
-                          style={{ width: `${organ.percentage}%` }}
-                        ></div>
-                      </div>
-                      <span>{organ.percentage}%</span>
-                    </div>
-                  ))}
+                      {heartRate} bpm
+                    </p>
+                  </div>
+                  <div>
+                    <p className="font-bold">Heart Rate</p>
+                    <p>
+                      {isNormalHeartRate(heartRate)
+                        ? "Heart rate is normal."
+                        : "Warning: Heart rate is outside the normal range!"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-white shadow-lg rounded-lg p-4 hover:bg-blue-700 hover:text-white transition duration-300">
+                  <div className="flex gap-4 items-center">
+                    <FaTemperatureHigh className="text-blue-500" />
+                    <p
+                      className={`font-bold text-blue-500 ${blinkingClass(
+                        temperature,
+                        "temperature"
+                      )}`}
+                    >
+                      {temperature}° C
+                    </p>
+                  </div>
+                  <div>
+                    <p className="font-bold">Temperature</p>
+                    <p>
+                      {isNormalTemperature(temperature)
+                        ? "Temperature is normal."
+                        : "Warning: Temperature is outside the normal range!"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-white shadow-lg rounded-lg p-4 hover:bg-blue-700 hover:text-white transition duration-300">
+                  <div className="flex gap-4 items-center">
+                    <MdBloodtype className="text-red-500" />
+                    <p
+                      className={`font-bold text-red-500 ${blinkingClass(
+                        bloodPressure,
+                        "bloodPressure"
+                      )}`}
+                    >
+                      {bloodPressure}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="font-bold">Blood Pressure</p>
+                    <p>
+                      {isNormalBloodPressure(bloodPressure)
+                        ? "Blood pressure is normal."
+                        : "Warning: Blood pressure is outside the normal range!"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-white shadow-lg rounded-lg p-4 hover:bg-blue-700 hover:text-white transition duration-300">
+                  <div className="flex gap-4 items-center">
+                    <GiWaterDrop className="text-yellow-500" />
+                    <p
+                      className={`font-bold text-yellow-500 ${blinkingClass(
+                        oxygenLevel,
+                        "oxygenLevel"
+                      )}`}
+                    >
+                      {oxygenLevel} %
+                    </p>
+                  </div>
+                  <div>
+                    <p className="font-bold">Oxygen</p>
+                    <p>
+                      {isNormalOxygenLevel(oxygenLevel)
+                        ? "Oxygen level is normal."
+                        : "Warning: Oxygen level is outside the normal range!"}
+                    </p>
+                  </div>
                 </div>
               </div>
             </CardContent>
