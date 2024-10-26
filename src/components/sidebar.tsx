@@ -22,7 +22,7 @@ const Sidebar = () => {
         <Link href="/" className={`flex md:w-full justify-start p-2 rounded cursor-pointer ${isActive("")}`}>
           <MdDashboard  className="h-5 w-5 mr-2" />
           <span className="hidden md:inline">Dashboard</span>
-        </div>
+        </Link>
         <div
           className={`flex md:w-full justify-start p-2 rounded cursor-pointer ${isActive(
             "/schedule"
@@ -31,7 +31,7 @@ const Sidebar = () => {
         >
           <Calendar className="h-5 w-5 mr-2" />
           <span className="hidden md:inline">Schedule</span>
-        </Link>
+        </div>
 
         <Link href="/" className={`flex md:w-full justify-start p-2 rounded cursor-pointer ${isActive("/")}`}>
           <Users className="h-5 w-5 mr-2" />
@@ -46,7 +46,7 @@ const Sidebar = () => {
         <Link href="/messages" className={`flex md:w-full justify-start p-2 rounded cursor-pointer ${isActive("/messages")}`}>
           <MdMessage  className="h-5 w-5 mr-2" />
           <span className="hidden md:inline">Messages</span>
-        </div>
+        </Link>
       </nav>
     </aside>
   );

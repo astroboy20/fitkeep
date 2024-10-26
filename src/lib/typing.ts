@@ -17,3 +17,9 @@ export type Device_Type = {
   avatar: string;
   assigned_patient_id: string;
 };
+
+export type AvailableDevice_Type = {
+  id: string | any;
+  device_name: string
+  serial_number: string | any
+};
