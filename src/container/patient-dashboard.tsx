@@ -17,9 +17,18 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { Sidebar } from "@/components/sidebar";
 import { useParams } from "next/navigation";
-import { FaHeartbeat, FaTemperatureHigh } from "react-icons/fa";
+import { FaDownload, FaHeartbeat, FaTemperatureHigh } from "react-icons/fa";
 import { MdBloodtype } from "react-icons/md";
 import { GiWaterDrop } from "react-icons/gi";
+import { PatientRegistration } from "@/components/patient-reg";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { AssignDevice } from "@/components/assign-device";
 
 type Appointment = {
   id?: string;
@@ -81,7 +90,7 @@ const PatientDashboard = () => {
 
     socket.onopen = () => {
       console.log("Connected to WebSocket server");
-      socket.send("Hello from the client!"); 
+      socket.send("Hello from the client!");
     };
 
     socket.onmessage = (event) => {
@@ -145,19 +154,18 @@ const PatientDashboard = () => {
   }
 
   if (!patient) {
-    return <div>Patient not found.</div>; 
+    return <div>Patient not found.</div>;
   }
   const normalRanges = {
     heartRate: { min: 60, max: 100 },
-    temperature: { min: 36.1, max: 37.2 }, 
+    temperature: { min: 36.1, max: 37.2 },
     bloodPressure: {
       systolic: { min: 90, max: 120 },
       diastolic: { min: 60, max: 80 },
     },
-    glucoseLevel: { min: 70, max: 140 }, 
-    oxygenLevel: { min: 90, max: 100 }, 
+    glucoseLevel: { min: 70, max: 140 },
+    oxygenLevel: { min: 90, max: 100 },
   };
-  
 
   const isNormalHeartRate = (rate: string) => {
     const parsedRate = parseInt(rate, 10);
@@ -188,18 +196,22 @@ const PatientDashboard = () => {
   };
 
   const isNormalOxygenLevel = (oxygen: string) => {
-    const parsedOxygen = parseFloat(oxygen); 
+    const parsedOxygen = parseFloat(oxygen);
     return (
       !isNaN(parsedOxygen) &&
       parsedOxygen >= normalRanges.oxygenLevel.min &&
       parsedOxygen <= normalRanges.oxygenLevel.max
     );
   };
-  
 
   const blinkingClass = (
     value: string,
-    type: "heartRate" | "temperature" | "bloodPressure" | "glucoseLevel" | "oxygenLevel"
+    type:
+      | "heartRate"
+      | "temperature"
+      | "bloodPressure"
+      | "glucoseLevel"
+      | "oxygenLevel"
   ) => {
     switch (type) {
       case "heartRate":
@@ -208,7 +220,7 @@ const PatientDashboard = () => {
         return !isNormalTemperature(value) ? "animate-blink" : "";
       case "bloodPressure":
         return !isNormalBloodPressure(value) ? "animate-blink" : "";
-      case "glucoseLevel":
+      case "oxygenLevel":
         return !isNormalOxygenLevel(value) ? "animate-blink" : "";
       default:
         return "";
@@ -255,7 +267,22 @@ const PatientDashboard = () => {
             </div>
           </div>
         </div>
-
+        <div className="flex items-center space-x-2 mb-5">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button>
+                {" "}
+                {patient.device_id ? "Unassign device" : "Assign device"}
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Assign device</DialogTitle>
+                <AssignDevice />
+              </DialogHeader>
+            </DialogContent>
+          </Dialog>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Health diagnosis */}
           <Card>
@@ -371,7 +398,7 @@ const PatientDashboard = () => {
           </Card>
 
           {/* Appointments */}
-          <Card className="col-span-full">
+          <Card>
             <CardHeader>
               <CardTitle>Upcoming Appointments</CardTitle>
             </CardHeader>
@@ -410,6 +437,44 @@ const PatientDashboard = () => {
             </CardContent>
           </Card>
 
+          {/* Patient checkup result */}
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle className="text-lg font-medium">
+                  Files/Document
+                </CardTitle>
+                <button className="text-blue-600 hover:underline">
+                  Add files
+                </button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {appointments.map((appointment) => (
+                  <div
+                    key={appointment.id}
+                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div>
+                        <p className="font-medium">Checkup Result</p>
+                        <p className="text-sm text-gray-500">
+                          Dr John Joe
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p><FaDownload /></p>
+                      <p className="text-sm text-gray-500">
+                        X-ray
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
           {/* Blood Pressure */}
           <Card>
             <CardHeader>
