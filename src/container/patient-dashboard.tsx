@@ -21,6 +21,7 @@ import { FaDownload, FaHeartbeat, FaTemperatureHigh } from "react-icons/fa";
 import { MdBloodtype } from "react-icons/md";
 import { GiWaterDrop } from "react-icons/gi";
 import { PatientRegistration } from "@/components/patient-reg";
+import ChatDropdown from "@/components/chatdropdown";
 import {
   Dialog,
   DialogContent,
@@ -29,6 +30,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { AssignDevice } from "@/components/assign-device";
+import { AddFile } from "@/components/upload-checkup-result";
+import { AiOutlineWechatWork } from "react-icons/ai";
 
 type Appointment = {
   id?: string;
@@ -71,6 +74,7 @@ const organHealth = [
   { name: "Liver", percentage: 45 },
 ];
 
+
 const PatientDashboard = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [patient, setPatient] = useState<any>(null);
@@ -83,6 +87,61 @@ const PatientDashboard = () => {
   const [temperature, setTemperature] = useState("N/A");
   const [bloodPressure, setBloodPressure] = useState("N/A");
   const [glucoseLevel, setGlucoseLevel] = useState("N/A");
+  const [chatVisible, setChatVisible] = useState(false);
+  const [results, setResults] = useState<any[]>([]);
+
+  // Fetch patient results
+  const fetchPatientResults = async () => {
+    try {
+      const response = await fetch(`http://localhost:8080/patient-result/${id}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch patient results");
+      }
+      const json = await response.json();
+      return json.data;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  };
+
+  // Fetch patient data
+  const fetchPatientData = async (id: string) => {
+    try {
+      const response = await fetch(`http://localhost:8080/patient/${id}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch patient data");
+      }
+      const data = await response.json();
+      setPatient(data);
+    } catch (error) {
+      console.error(error);
+      setPatient(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Get patient results and WebSocket connection once patient is available
+  useEffect(() => {
+    const getResults = async () => {
+      try {
+        const data = await fetchPatientResults();
+        console.log(data); // Log to inspect the structure of the response
+        setResults(data); // Handle the results here
+      } catch {
+        setResults([]); // Handle fetch failure
+      } finally {
+        setLoading(false); // End loading regardless of success/failure
+      }
+    };
+    getResults();
+  }, [id]);
+
+  // Log results whenever they change
+  useEffect(() => {
+    console.log(results); // Logs the updated results
+  }, [results]);
 
   useEffect(() => {
     const wsUrl = `ws://localhost:8080/ws/${id}`;
@@ -117,7 +176,9 @@ const PatientDashboard = () => {
     };
   }, [id]);
 
+  // Update patient info from WebSocket message
   const updatePatientInfo = (data: any) => {
+    console.log(data)
     setPatientId(data.patient_id || "N/A");
     setDeviceId(data.device_id || "N/A");
     setHeartRate(data.heart_rate || "N/A");
@@ -127,28 +188,14 @@ const PatientDashboard = () => {
     setGlucoseLevel(data.glucose_level || "N/A");
   };
 
+  // Fetch patient data when id changes
   useEffect(() => {
     if (id) {
-      const fetchPatientData = async (id: string) => {
-        try {
-          const response = await fetch(`http://localhost:8080/patient/${id}`);
-          if (!response.ok) {
-            throw new Error("Failed to fetch patient data");
-          }
-          const data = await response.json();
-          setPatient(data);
-        } catch (error) {
-          console.error(error);
-          setPatient(null);
-        } finally {
-          setLoading(false);
-        }
-      };
-
       fetchPatientData(id as string);
     }
   }, [id]);
 
+  // Loading and error handling states
   if (loading) {
     return <div>Loading...</div>; // Show loading state
   }
@@ -156,6 +203,8 @@ const PatientDashboard = () => {
   if (!patient) {
     return <div>Patient not found.</div>;
   }
+
+  // Normal ranges for health metrics
   const normalRanges = {
     heartRate: { min: 60, max: 100 },
     temperature: { min: 36.1, max: 37.2 },
@@ -167,6 +216,7 @@ const PatientDashboard = () => {
     oxygenLevel: { min: 90, max: 100 },
   };
 
+  // Functions to check if values are within normal range
   const isNormalHeartRate = (rate: string) => {
     const parsedRate = parseInt(rate, 10);
     return (
@@ -204,6 +254,7 @@ const PatientDashboard = () => {
     );
   };
 
+  // Blinking class for abnormal values
   const blinkingClass = (
     value: string,
     type:
@@ -226,7 +277,6 @@ const PatientDashboard = () => {
         return "";
     }
   };
-
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
@@ -237,23 +287,24 @@ const PatientDashboard = () => {
         <div className="flex justify-between items-center mb-8">
           <Input type="search" placeholder="Search" className="w-64" />
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="icon">
-              <span className="sr-only">Notifications</span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-                <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-              </svg>
-            </Button>
+            <div className="relative">
+            <Button
+  variant="ghost"
+  size="icon"
+  className="relative"
+  onClick={() => setChatVisible(!chatVisible)}
+>
+  <AiOutlineWechatWork className="text-blue-500" style={{ width: "2rem", height: "2rem" }} />
+</Button>
+
+
+              {chatVisible && (
+                <div className="absolute top-10 right-0 w-80 bg-white border border-gray-300 rounded shadow-lg z-50">
+                  <ChatDropdown />
+                </div>
+              )}
+            </div>
+
             <Avatar>
               <AvatarImage
                 src="/placeholder.svg?height=32&width=32"
@@ -444,34 +495,58 @@ const PatientDashboard = () => {
                 <CardTitle className="text-lg font-medium">
                   Files/Document
                 </CardTitle>
-                <button className="text-blue-600 hover:underline">
-                  Add files
-                </button>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button>Upload Result</Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                      <DialogTitle>Upload Result</DialogTitle>
+                      <AddFile />
+                    </DialogHeader>
+                  </DialogContent>
+                </Dialog>
               </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {appointments.map((appointment) => (
-                  <div
-                    key={appointment.id}
-                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
-                  >
-                    <div className="flex items-center space-x-4">
-                      <div>
-                        <p className="font-medium">Checkup Result</p>
+                {Array.isArray(results) && results.length > 0 ? (
+                  results.map((result) => (
+                    <div
+                      key={result.id}
+                      className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                    >
+                      <div className="flex items-center space-x-4">
+                        <div>
+                          <p className="font-medium">{result.result_name}</p>
+                          <p className="text-sm text-gray-500">
+                            Uploaded at:{" "}
+                            {result.created_at && result.created_at.Time
+                              ? new Date(
+                                  result.created_at.Time
+                                ).toLocaleDateString()
+                              : "Date not available"}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <a
+                          href={result.result_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center text-blue-500 hover:underline"
+                        >
+                          <FaDownload className="mr-1" /> Download
+                        </a>
                         <p className="text-sm text-gray-500">
-                          Dr John Joe
+                          Result ID: {result.id}
                         </p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p><FaDownload /></p>
-                      <p className="text-sm text-gray-500">
-                        X-ray
-                      </p>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <div>No results available</div>
+                )}
               </div>
             </CardContent>
           </Card>
