@@ -1,28 +1,37 @@
 import React from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Users, Calendar } from "lucide-react";
 import Link from "next/link";
 import { MdDashboard, MdDeviceHub, MdMessage } from "react-icons/md";
 
 const Sidebar = () => {
+  const router = useRouter();
   const pathname = usePathname();
 
   const isActive = (path: string) =>
     pathname === path ? "bg-white text-blue-600" : "";
 
+  const navigate = (path: string) => {
+    router.push(path);
+  };
+
   return (
-    <aside className="w-full md:w-64 bg-blue-600 text-white p-4 rounded-br-lg rounded-bl-lg lg:rounded-tr-lg lg:rounded-br-lg">
+    <aside className="w-full md:w-64 bg-blue-600 text-white p-4  rounded-br-lg rounded-bl-lg  lg:rounded-tr-lg lg:rounded-br-lg">
       <div className="text-2xl font-bold mb-8 hidden md:block">FITKEEP</div>
       <nav className="flex justify-between md:flex-col space-x-2 md:space-x-0 md:space-y-10">
         <Link href="/" className={`flex md:w-full justify-start p-2 rounded cursor-pointer ${isActive("")}`}>
           <MdDashboard  className="h-5 w-5 mr-2" />
           <span className="hidden md:inline">Dashboard</span>
         </Link>
-
-        <Link href="/schedule" className={`flex md:w-full justify-start p-2 rounded cursor-pointer ${isActive("/schedule")}`}>
+        <div
+          className={`flex md:w-full justify-start p-2 rounded cursor-pointer ${isActive(
+            "/schedule"
+          )}`}
+          onClick={() => navigate("/schedule")}
+        >
           <Calendar className="h-5 w-5 mr-2" />
           <span className="hidden md:inline">Schedule</span>
-        </Link>
+        </div>
 
         <Link href="/" className={`flex md:w-full justify-start p-2 rounded cursor-pointer ${isActive("/")}`}>
           <Users className="h-5 w-5 mr-2" />

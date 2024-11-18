@@ -2,9 +2,10 @@ import React, { useEffect, useState } from "react";
 import { Input } from "./ui/input";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css"; // Import toast styles
+import { AvailableDevice_Type } from "@/lib/typing";
 
 const AssignDevice = () => {
-  const [availableDevices, setAvailableDevices] = useState([]);
+  const [availableDevices, setAvailableDevices] = useState<AvailableDevice_Type[]>([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState("");
   const [userId, setUserId] = useState("");
 
@@ -28,7 +29,7 @@ const AssignDevice = () => {
   }, []);
 
   // Handle form submission
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const assignData = {
